@@ -1,0 +1,111 @@
+# 1.8.ElasticsearchCRUDOperations
+
+# 1.8 Elasticsearch CRUD Operations
+
+PUT test 
+DELETE test
+
+##
+
+POST /inventory/_doc
+{
+
+"name" : "Phone",
+"price" : "500",
+"quantity" : 100
+
+}
+
+GET /inventory/_doc/1yJj2JYBcvhYY_lino3j
+############################################################
+#with id, when using an ID resend with update info and it will update
+POST /inventory/_doc/101
+{
+
+"name" : "Tablet",
+"price" : "400",
+"quantity" : 250
+
+}
+GET /inventory/_doc/101
+
+POST /inventory/_update/101
+{
+    "doc": {
+        "labels":[
+            "electronics","mobiles"
+        ]
+    }
+}
+############################################################################
+# 9 doc are immutrable
+# documents have version numbers
+#scipted updates, reduce the quantity by 1
+POST /inventory/_update/101
+{
+    "script":{
+        "source": "ctx._source.quantity--"
+    }
+}
+
+#This updates the value to anything you want
+POST /inventory/_update/101
+{
+    "script":{
+        "source": "ctx._source.quantity = 300"
+    }
+}
+
+GET /inventory/_doc/101
+
+#This is reduces the quantity by 50 the version updates
+POST /inventory/_update/101
+{
+    "script":{
+        "source":"ctx._source.quantity -= params.amount",
+        "params": {
+            "amount": 50
+        }
+
+    }
+}
+
+GET /inventory/_doc/101
+
+#ctx means context
+#Reducing the qautity by 2
+POST /inventory/_update/101
+{
+    "script": {
+        "source": """
+            if (ctx._source.quantity > 0) {
+                        ctx._source.quantity--;
+        }
+            """
+    }
+}
+GET /inventory/_doc/101
+
+#### If doc is not there it will create. Upsert
+POST /inventory/_update/102
+{
+    "script": {
+        "source": "ctx._source.quantity--"
+    },
+    "upsert":{
+    "name":"TV",
+    "price": 700,
+    "quantity": 50
+}
+}
+GET /inventory/_doc/102
+
+
+#replace, provide ID
+PUT /inventory/_doc/101
+{
+    "name": "Headphone",
+    "price":"100",
+    "quantity":500
+}
+GET /inventory/_doc/101
